@@ -1,0 +1,9 @@
+name,id,sis_id,section,section_id,section_sis_id,submitted,attempt,"1150802: What activity did you do? Choose 'None' if you didn't do this activity. [activity]
+How long was the activity? [duration]
+Who did you do this activity with? Choose 'None' for the remaining options if you interacted with less than four people in your group.
+Groupmate 1: [p1]Groupmate 2: [p2]Groupmate 3: [p3]Groupmate 4: [p4]",1,"1150814: What activity did you do? Choose 'None' if you didn't do this activity. [activity]
+How long was the activity? [duration]
+Who did you do this activity with? Choose 'None' for the remaining options if you interacted with less than four people in your group.
+Groupmate 1: [p1]Groupmate 2: [p2]Groupmate 3: [p3]Groupmate 4: [p4]",1,"1162398: If you did not get to interact with anyone in your group this week, please explain what happened here.",0,n correct,n incorrect,score
+Bonathan,286983,,Matthew Butner Sandbox,1759,,2021-03-02 20:34:29 UTC,1,"Do introductions,10min,Dropdown of everyone in the class,Dropdown of everyone in the class,Dropdown of everyone in the class,None",0.5,,0,sigh,0,2,1,0.5
+bon,286981,,Matthew Butner Sandbox,1759,,2021-03-02 19:45:20 UTC,1,"Talk about class-related topics,20min,Dropdown of everyone in the class,Dropdown of everyone in the class,None,None",0.5,"Play a game,10min,Dropdown of everyone in the class,None,Dropdown of everyone in the class,Dropdown of everyone in the class",0.5,weewoo,0,3,0,1

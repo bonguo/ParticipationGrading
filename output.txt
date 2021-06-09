@@ -1,0 +1,7 @@
+nameidsis_idsectionsection_idsection_sis_idsubmitted1150802: What activity did you do? Choose 'None' if you didn't do this activity. [activity]
+How long was the activity? [duration]
+Who did you do this activity with? Choose 'None' for the remaining options if you interacted with less than four people in your group.
+Groupmate 1: [p1]Groupmate 2: [p2]Groupmate 3: [p3]Groupmate 4: [p4]1.01150814: What activity did you do? Choose 'None' if you didn't do this activity. [activity]
+How long was the activity? [duration]
+Who did you do this activity with? Choose 'None' for the remaining options if you interacted with less than four people in your group.
+Groupmate 1: [p1]Groupmate 2: [p2]Groupmate 3: [p3]Groupmate 4: [p4]1.0.1n correctn incorrectscore
