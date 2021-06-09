@@ -72,28 +72,34 @@ class ParticipationQuiz:
         # four activity questions
         questions = [
             {
-                'question_name': f'Activity {act_num}',
-                'question_text': "<p>What activity did you do? Choose 'None' if you didn't do this activity. [activity]</p><br><p>How long was the activity? [duration] minutes</p><br><p>Who did you do this activity with? Choose 'None' for the remaining options if you interacted with less than four people in your group.</p><b><p>Groupmate 1: [p1]<br>Groupmate 2: [p2]<br>Groupmate 3: [p3]<br>Groupmate 4: [p4]<br></p>",
+                'question_name': f'Interaction {act_num}',
+                'question_text': """<p>What of these activities did you do? Choose 'Yes' for 'None' if you didn't do this activity.<br>
+                                    <b>Warning:</b> If you select 'Yes' for 'None', the rest of your answer will not be analyzed.<br></p>
+                                    <p>None: [a1]<br>Do introductions: [a2]<br>Play a game: [a3]<br>Talk about school-related topics: [a4]<br>Talk about non-school-related topics: [a5]</p><br>
+                                    <p>How long did you spend on this interaction? [duration] minutes</p><br>
+                                    <p>Who did you do this activity with? Choose 'None' for the remaining options if you interacted 
+                                    with less than four people in your group for this activity.<br>
+                                    Groupmate 1: [p1]<br>Groupmate 2: [p2]<br>Groupmate 3: [p3]<br>Groupmate 4: [p4]</p>""",
                 'question_type': 'multiple_dropdowns_question',
                 'answers': dict(enumerate(answers)),
                 'points_possible': 1
-            } for act_num in range(0, self.number_of_activities)
+            } for act_num in range(1, self.number_of_activities+1)
         ]
 
         # if they didn't interact, explain here
         questions.append({
-                'question_name': f"If you couldn't meet with your group",
-                'question_text': "If you did not get to interact with anyone in your group this week, please explain what happened here.",
-                'question_type': 'essay_question',
-                'points_possible': 1
-            })
+            'question_name': f"If you couldn't meet with your group",
+            'question_text': "If you did not get to interact with anyone in your group this week, please explain what happened here.",
+            'question_type': 'essay_question',
+            'points_possible': 1
+        })
 
         return questions
 
     # create activity answers
     def _create_answers(self) -> List[dict]:
-        activities = ['Talk about class-related topics', 'Play a game', 'Do introductions', 'None']
-        durations = ["5", "10", "15", "20", "25", "30", "35", "40", "45+"]
+        activities = ['a1', 'a2', 'a3', 'a4', 'a5']
+        durations = ['5', '10', '15', '20', '25', '30', '35', '40', '45+']
         groupmates = ['p1', 'p2', 'p3', 'p4']
 
         answers = []
@@ -108,11 +114,24 @@ class ParticipationQuiz:
                     'answer_weight': 1
                 })
 
+            # add 'None' choice
+            answers.append({
+                'answer_html': ','.join([str(s.id) for s in student]),
+                'answer_text': 'None',
+                'blank_id': groupmate,
+                'answer_weight': 1
+            })
+
         # activity question
         for activity in activities:
             answers.append({
-                'answer_text': activity,
-                'blank_id': 'activity',
+                'answer_text': 'Yes',
+                'blank_id': activity,
+                'answer_weight': 1
+            })
+            answers.append({
+                'answer_text': 'No',
+                'blank_id': activity,
                 'answer_weight': 1
             })
     
