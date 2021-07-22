@@ -41,11 +41,13 @@ from func_utils import *
 if __name__ == "__main__":
     
     # get user input for the url
-    url = getAPIURL()
+    # url = getAPIURL()
+    url = 'https://canvas.ucdavis.edu'
     print("Got url: '",url,"'",sep='')
 
     # get user input for the api key
-    key = getAPIKEY()
+    # key = getAPIKEY()
+    key = '3438~S5MKJLaQYYFCVtVHFHQnxmSwi1hhoyMx7LfOl9Ih0ecClOUrQJTun5wZ0dzzFxqe'
     print("Got key: '",key,"'",sep='')
 
     # now we have enough information to make our canvas object
@@ -54,17 +56,60 @@ if __name__ == "__main__":
 
     # OHH OKAY IT LOOKS LIKE THIS ONE MIGHT NOT EVEN BE NEEDED! WHOOPS
     # get user input for the canvas's user
-    user = getUser(canvas)
-    print("Got user: '",user,"'",sep='')
+    # user = getUser(canvas)
+    # print("Got user: '",user,"'",sep='')
     
     # get user input for the course
     course = getCourse(canvas)
     print("Got course: '",course,"'",sep='')
 
+    # Make a dictionary mapping student IDs (ints) to Student objects
+    student_dict = {}
+    users = course.get_users()
+    for user in users:
+        student_dict[user.id] = Student(user)
+
     # get the user input for the quiz
     quiz = getQuiz(course)
     print("Got quiz: '",quiz,"'",sep='')
 
+    quiz_stats = list(quiz.get_statistics())[0].question_statistics
+
+    # iterate through the main questions in the quiz
+    for question in quiz_stats:
+        # get the question id
+        question_id = question['id']
+        if question['question_type'] == 'multiple_dropdowns_question':
+            # Go through the answer sets
+            # each dropdown is a sub-question for each question
+            for dropdown in question['answer_sets']:
+                # the question type -- p1, p2, etc.
+                q_type = dropdown['text']
+                # each answer is a possible answer in the dropdown
+                for answer in dropdown['answers']:
+                    # the actual text answer from the dropdown
+                    selection = answer['text']
+                    # each user is someone who chose this particular answer
+                    # for this particular dropdown
+                    # for this particular question
+                    for user_id in answer['user_ids']:
+                        # if this Interaction does not exist in the Student's interactions, create it
+                        if selection != 'No Answer':
+                            if question_id not in student_dict[user_id].getInteractions():
+                                # in Student.interactions, maps question_id to Interaction
+                                student_dict[user_id].addInteraction(question_id, quiz.id)
+                            # now add data to the appropriate section of that Interaction
+                            student_dict[user_id].updateInteractions(question_id, q_type, selection)
+
+    # By the end of this for loop, we should have:
+    # a dictionary mapping student IDs to Student objects
+    # each Student object has a dictionary mapping question IDs to Interaction objects
+    # each Interaction object has the participants, activities, and duration set,
+        # if that particular Student selected those options for that question in the quiz
+
+    # Now let's put those students into their Groups
+    
+    exit()
     # Get the right quiz
     studentReport = quiz.create_report("student_analysis")
     reportProgress = None

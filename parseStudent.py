@@ -11,7 +11,8 @@ import re
 #        and add them as a Student object instead of just a string
 
 # for each question:
-    # ignore if answer to the first drop-down is 'None'
+    # ignore if full answer is [Select]
+    # if interaction is half filled, important info is missing, email student to resubmit?
     # otherwise, create an Interaction object which notes:
         # activity type
         # duration (set to 0 if no duration was selected)
@@ -19,43 +20,64 @@ import re
         # Interaction ID, composed of user_id + submission_id + i (i=1,2,3,4)
     # append each valid Interaction to all_interactions
 def createInteractions(inter_arr, user_name, user_id, quiz_id):
+    acts = set(['Do introductions', 'Play a game', 'School-related topics', 'Non-school-related topics'])
+    # duration is always the last element in each interaction list
+    durs = set(['5', '10', '15', '20', '25', '30', '35', '40', '45+'])
+    
     inter_list = []
     for interaction in inter_arr:
-        # check for full bad submission, nan
-        # what about the case where only some questions have no answers?
+        # check for full empty submission, nan
         if interaction != interaction:
             continue
 
-        # set activity and check if None
-        activity = interaction[0]
-        if activity == 'None':
-            continue
+        # set activities
+        activities = interaction.intersection(acts)
 
-        # strip non-numeric characters from the string, convert to int
-        duration = int(re.sub('[^0-9]', '', interaction[1]))
+        duration = 0
+        durations = interaction.intersection(durs)
+        for duration in durations: # should only be one
+            # strip non-numeric characters from the string, convert to int
+            duration = int(re.sub('[^0-9]', '', duration))
 
         # set of people in interaction
-        participants = set(interaction[2:])
-        if 'None' in participants:
-            participants.remove('None')
-        participants.add(user_name) # add the user who submitted to the interaction
+        participants = set()
+        for item in interaction:
+            if item not in acts and item not in durs:
+                participants.add(item)
 
-        # Interaction contains the activity (str), duration (int),
-        # participants (set of strs), and the user_id of the Student the Interaction belongs to
-        new_inter = Interaction(activity, duration, participants, user_id, quiz_id)
-        inter_list.append(new_inter)
+        # If the user added themselves under participants, first remove
+        if user_name in participants:
+            participants.remove(user_name)
+
+        # First check if activities, duration, or participants are empty
+        if len(activities) > 0 and duration > 0 and len(participants) > 0:
+            participants.add(user_name) # add the user who submitted the interaction
+
+            # Interaction contains the activitites (set of strs), duration (int),
+            # participants (set of strs), and the user_id of the Student the Interaction belongs to
+            new_inter = Interaction(activities, duration, participants, user_id, quiz_id)
+            inter_list.append(new_inter)
+        else:
+            pass
+            # Invalid interaction -- missing essential information
+            # Email student to resubmit?
 
     # list of Interactions for a single Student
     return inter_list
 
+def fix_names(argList):
+    list_out = []
+    for i, arg in enumerate(argList):
+        if arg[0] == ' ':
+            full_name = arg[1:] + ' ' + argList[i-1][:-1]
+            list_out.append(full_name)
+        elif arg[-1] != '\\':
+            list_out.append(arg)
+    return list_out
 
 def parse(studentData:pd, CLASS_ID: int, quiz_id: int):
     # Fill the dictionary and the student lists
     dictSt = {}
-
-    # these are the question IDs
-    activity1 = '1150802'
-    activity2 = '1150814'
     
     """
     #Set default to ECS 154A, but it could also be 36A
@@ -65,23 +87,26 @@ def parse(studentData:pd, CLASS_ID: int, quiz_id: int):
         activity2 = 'some other id'   
     """
 
-    # the list of question ids of questions 
-    questionList = [activity1, activity2]
+    # The list of question ids of questions 
+    questionList = []
+
+    # The numerical index location of the question
+    questionsLoc = []
 
     # all columns in the student data csv. Need for full question string
     fullQuestionList = studentData.columns.values.tolist()
-    # print(fullQuestionList)
+    #print(fullQuestionList)
 
-    # numerical location of the question
-    questionsLoc = []
+    # Parse fullQuestionList for the question locations and IDs,
+    # which are 7-digit numbers at the beginning of the string
+    for i, item in enumerate(fullQuestionList):
+        if len(item) > 7 and item[0:7].isdigit():
+            questionList.append(item[0:7])
+            questionsLoc.append(i)
 
-    # iterate through all column names in csv and add location of matching id to list
-    i = 0
-    for question in fullQuestionList:
-        for id in questionList:
-            if id in question:
-                questionsLoc.append(i)
-        i += 1
+    print(questionList)
+    print(questionsLoc)
+
     # for item in questionList:
       #  questionsFull.append([word for word in fullQuestionList if item in word])
     #for item in questionsFull:
@@ -91,6 +116,7 @@ def parse(studentData:pd, CLASS_ID: int, quiz_id: int):
     questionsDict['name'] = studentData.columns.get_loc('name')
 
     # print(questionsDict)
+    # {'1360923': 7, '1360924': 9, '1360925': 11, '1360926': 13, '1360927': 15, 'id': 1, 'name': 0}
     # exit()
 
     # parse each student submission
@@ -111,16 +137,20 @@ def parse(studentData:pd, CLASS_ID: int, quiz_id: int):
         all_interactions = []
 
         # get user answers for each activity
-        i = 1
-        for activity in questionList:
-            try: 
-                tempArr = row[questionsDict[activity]].split(',')
-            except:
-                print("bad submission")
-                tempArr = row[questionsDict[activity]]
-            print("Interaction ", i, ": ", tempArr, sep='')
-            all_interactions.append(tempArr)
-            i += 1
+        for i, activity in enumerate(questionList):
+            if i != len(questionList) - 1:
+                try:
+                    # Won't work when names are separated by commas
+                    # Do some name pre-processing before turning it into a set
+                    argList = fix_names(row[questionsDict[activity]].split(','))
+                    tempArr = set(argList)
+                    all_interactions.append(tempArr)
+                except:
+                    tempArr = "empty submission"
+                print("Interaction ", i+1, ": ", tempArr, sep='')
+            else: # the last question, free response, could be blank
+                print("Free response:", row[questionsDict[activity]])
+                # Add this to the Group Student's info somehow?
         
         # creates list of Interaction objects for this specific submission
         # can map it to the specific student for grading purposes?

@@ -10,7 +10,7 @@ class Group:
     # initialize Group by passing in canvas group object
     def __init__(self, canvas_group_object):
         self.name = canvas_group_object.name
-        self.ID = canvas_group_object.id
+        self.group_id = canvas_group_object.id
         
         self.students = self.getStudentsInGroup(canvas_group_object)
         self.interactions = None # for now
@@ -64,7 +64,7 @@ class Group:
         
     # get the group's ID
     def getID(self):
-        return self.ID
+        return self.group_id
     
     # get the group's students
     def getStudents(self):

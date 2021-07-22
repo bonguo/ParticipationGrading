@@ -73,12 +73,14 @@ class ParticipationQuiz:
         questions = [
             {
                 'question_name': f'Interaction {act_num}',
-                'question_text': """<p>What of these activities did you do? Choose 'Yes' for 'None' if you didn't do this activity.<br>
-                                    <b>Warning:</b> If you select 'Yes' for 'None', the rest of your answer will not be analyzed.<br></p>
-                                    <p>None: [a1]<br>Do introductions: [a2]<br>Play a game: [a3]<br>Talk about school-related topics: [a4]<br>Talk about non-school-related topics: [a5]</p><br>
+                'question_text': """<p>Which of these activities did you do in your interaction? Please leave everything on [Select] if you did not have this interaction.<br>
+                                    <p>Do introductions: [Do introductions]<br>
+                                        Play a game: [Play a game]<br>
+                                        Talk about school-related topics: [School-related topics]<br>
+                                        Talk about non-school-related topics: [Non-school-related topics]</p><br>
                                     <p>How long did you spend on this interaction? [duration] minutes</p><br>
-                                    <p>Who did you do this activity with? Choose 'None' for the remaining options if you interacted 
-                                    with less than four people in your group for this activity.<br>
+                                    <p>Who did you do this activity with? Leave the remaining groupmates on [Select] if 
+                                        you interacted with less than four people in your group for this activity.<br>
                                     Groupmate 1: [p1]<br>Groupmate 2: [p2]<br>Groupmate 3: [p3]<br>Groupmate 4: [p4]</p>""",
                 'question_type': 'multiple_dropdowns_question',
                 'answers': dict(enumerate(answers)),
@@ -98,7 +100,7 @@ class ParticipationQuiz:
 
     # create activity answers
     def _create_answers(self) -> List[dict]:
-        activities = ['a1', 'a2', 'a3', 'a4', 'a5']
+        activities = ['Do introductions', 'Play a game', 'School-related topics', 'Non-school-related topics']
         durations = ['5', '10', '15', '20', '25', '30', '35', '40', '45+']
         groupmates = ['p1', 'p2', 'p3', 'p4']
 
@@ -125,15 +127,15 @@ class ParticipationQuiz:
         # activity question
         for activity in activities:
             answers.append({
-                'answer_text': 'Yes',
+                'answer_text': activity,
                 'blank_id': activity,
                 'answer_weight': 1
             })
-            answers.append({
+            """answers.append({
                 'answer_text': 'No',
                 'blank_id': activity,
                 'answer_weight': 1
-            })
+            })"""
     
 
         # duration question
