@@ -248,36 +248,35 @@ def getGroups(course):
     
     return groups
 
-def gradeSubmissions(quiz_id, group):
-    print(group.getParticipantNames)
-    for student in group.getStudents():
-        if student.getInteractions() != None:
-            for interaction in student.getInteractions():
-                print(student.name)
-                print(interaction.getActivity())
-                print(interaction.getDuration())
-                print(interaction.getParticipants())
-                print(interaction.getQuizID())
+def gradeSubmissions(group):
+    # print(group.getParticipantNames)
+    print(group.getName())
+    print(group.getAllInteractions())
+    # for student in group.getStudents():
+    #     for interaction in student.getInteractions():
+    #         print(student.name)
+    #         print(interaction.getActivity())
+    #         print(interaction.getDuration())
+    #         print(interaction.getParticipants())
+    #         print(interaction.getQuizID())
 
 # what the gradeSubmission() call should do:
-        # get the user the submission belongs to
-        # parse question answers
-        # for each question:
-            # ignore if answer to the first drop-down is 'None'
-            # otherwise, create an Interaction object the same way as before
-            # check against existing list of Interactions for all four attributes
-                # activity type (give this a lower weight if everything else matches?)
-                # duration
-                    # allow for +/- 5min buffer in duration
-                # list of students involved, including the user who submitted (set to empty list if no selection)
-                    # check to make sure all students selected are in the specified Group
-                # Interaction ID, composed of user_id + submission_id + i (i=1,2,3,4)
-                    # Do not count valid Interaction if the ID is the same
-               
-            # if Interaction exists, tally up time
-
-        # calculate grade from time / 20
-        # return grade
+    # for each Student in the Group
+    # for each Interaction that Student had
+    # for each student_name in that Interaction, check they had an unvalidated Interaction with the following matching attributes:
+        # list of students involved, including the user who submitted, should match exactly
+            # check to make sure all students selected are in the specified Group
+        # activity types
+            # should match +/- one activity type
+        # duration
+            # allow for +/- 5min buffer in duration
+            # lower weighting -- what if one student left early in a group meetup?
+            # do #steps between intervals
+        # use dataframe?
+        # set those matching Interactions to validated = True
+        
+    # calculate grade from max(validated time / required time, 1)
+    # return or set grade
 
  # grade interactions by the difference in number of people, length of duration, type of activities
     # multiply by constant penalties chosen by us

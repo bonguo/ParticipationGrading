@@ -6,7 +6,8 @@ class ParticipationQuiz:
     def __init__(self, course: canvasapi.course.Course,
                  assignment_name: str,
                  # assignment_group: canvasapi.assignment.AssignmentGroup,
-                 number_of_activities,
+                 num_interactions: int,
+                 dates_list,
                  due_date: Optional[datetime.datetime] = None,
                  unlock_date: Optional[datetime.datetime] = None,
                  lock_date: Optional[datetime.datetime] = None):
@@ -14,7 +15,7 @@ class ParticipationQuiz:
         :param course:
         :param assignment_name:
         :param assignment_group:
-        :param number_of_activities:
+        :param num_interactions:
         :param due_date:
         :param unlock_date:
         :param lock_date:
@@ -22,10 +23,11 @@ class ParticipationQuiz:
         self.user = course
         self.assignment_name = assignment_name
         #self.assignment_group = assignment_group
+        self.dates_list = dates_list
         self.unlock_date = unlock_date
         self.due_date = due_date
         self.lock_date = lock_date
-        self.number_of_activities = number_of_activities
+        self.num_interactions = num_interactions
 
         students = course.get_users(sort='username', enrollment_type=['student'])
         self.students = {}
@@ -72,28 +74,42 @@ class ParticipationQuiz:
         # four activity questions
         questions = [
             {
-                'question_name': f'Interaction {act_num}',
-                'question_text': """<p>Which of these activities did you do in your interaction? Please leave everything on [Select] if you did not have this interaction.<br>
+                'question_name': 'Interaction {num}'.format(num = inter_num),
+                'question_text': """<p><strong>Activities.</strong> Which of these activities did you do in your interaction? Please leave everything on [Select] if you did not have this interaction.<br>
                                     <p>Do introductions: [Do introductions]<br>
                                         Play a game: [Play a game]<br>
                                         Talk about school-related topics: [School-related topics]<br>
                                         Talk about non-school-related topics: [Non-school-related topics]</p><br>
-                                    <p>How long did you spend on this interaction? [duration] minutes</p><br>
-                                    <p>Who did you do this activity with? Leave the remaining groupmates on [Select] if 
+                                    <p><strong>Duration.</strong> How long did you spend on this interaction? [duration] minutes</p><br>
+                                    <p><strong>Participants.</strong> Who did you do this activity with? Leave the remaining groupmates on [Select] if 
                                         you interacted with less than four people in your group for this activity.<br>
-                                    Groupmate 1: [p1]<br>Groupmate 2: [p2]<br>Groupmate 3: [p3]<br>Groupmate 4: [p4]</p>""",
+                                    Groupmate 1: [p1]<br>Groupmate 2: [p2]<br>Groupmate 3: [p3]<br>Groupmate 4: [p4]</p><br>
+                                    <p><strong>Date.</strong> On what date did this interaction begin, in PST? [date]</p><br?""",
                 'question_type': 'multiple_dropdowns_question',
                 'answers': dict(enumerate(answers)),
                 'points_possible': 1
-            } for act_num in range(1, self.number_of_activities+1)
+            } for inter_num in range(1, self.num_interactions+1)
         ]
 
         # if they didn't interact, explain here
         questions.append({
-            'question_name': f"If you couldn't meet with your group",
+            'question_name': "If you couldn't meet with your group",
             'question_text': "If you did not get to interact with anyone in your group this week, please explain what happened here.",
             'question_type': 'essay_question',
             'points_possible': 1
+        })
+
+        # who did they not interact with at all
+        # used to jog their memory in terms of who they did interact with
+        questions.append({
+            'question_name': "Was there anyone you didn't interact with",
+            'question_text': "Is there anyone <strong>in your study group</strong> that you didn't interact with at all this week?",
+            'question_type': 'multiple_answers_question',
+            'points_possible': 1,
+            'answers': [
+                {'answer_text': student_name,
+                'answer_weight': 1} for student_name in self.students
+            ]
         })
 
         return questions
@@ -116,14 +132,6 @@ class ParticipationQuiz:
                     'answer_weight': 1
                 })
 
-            # add 'None' choice
-            answers.append({
-                'answer_html': ','.join([str(s.id) for s in student]),
-                'answer_text': 'None',
-                'blank_id': groupmate,
-                'answer_weight': 1
-            })
-
         # activity question
         for activity in activities:
             answers.append({
@@ -131,18 +139,20 @@ class ParticipationQuiz:
                 'blank_id': activity,
                 'answer_weight': 1
             })
-            """answers.append({
-                'answer_text': 'No',
-                'blank_id': activity,
-                'answer_weight': 1
-            })"""
-    
 
         # duration question
         for duration in durations:
             answers.append({
                 'answer_text': duration,
                 'blank_id': 'duration',
+                'answer_weight': 1
+            })
+
+        # add a question for date / day of the week when the interaction occurred
+        for date in self.dates_list:
+            answers.append({
+                'answer_text': (date.strftime("%m/%d/%Y")),
+                'blank_id': 'date',
                 'answer_weight': 1
             })
 

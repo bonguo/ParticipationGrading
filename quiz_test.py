@@ -1,42 +1,17 @@
 
-from quiz_creator.participation_quiz import ParticipationQuiz
 from canvasapi import Canvas
 import urllib.request
 import pandas as pd
 import pprint
-from parseStudent import parse
 from StudentClass import Student
 from GroupClass import Group
-from InteractionClass import Interaction
-from SubmissionClass import Submission
+# from InteractionClass import Interaction
+# from SubmissionClass import Submission
 from func_utils import *
-
-# big ideas:
-
-# User inputs the url
-# User inputs their api_key
-# User inputs (or chooses) the user
-# User inputs (or chooses) the course id
-# User inputs (or chooses) the quiz id
-# All user submissions get downloaded
-# more stuff happens
-
-
-# potentially useful API functions:
-# course .get_quizzes() returns a list of quizzes
-# course .get_recent_students() returns a list of students in order
-                            # of how recently they've logged on
-# course .get_user(userID) returns the User
-# course .get_users() returns all users!
-# quiz .get_submissions() returns all submissions
-# quiz .get_statistics() returns all statistics (rebeca said this was good?)
-# quizSubmission .get_submission_questions() returns quizSubmissionQuestion's
-# quizSubmission .update_score_and_comments() somehow send the "fudge points"??
-
     
-##############################
-######## Main Function #######
-##############################
+###############################
+######## Main Function ########
+###############################
 
 if __name__ == "__main__":
     
@@ -46,28 +21,27 @@ if __name__ == "__main__":
     print("Got url: '",url,"'",sep='')
 
     # get user input for the api key
-    # key = getAPIKEY()
-    key = '3438~S5MKJLaQYYFCVtVHFHQnxmSwi1hhoyMx7LfOl9Ih0ecClOUrQJTun5wZ0dzzFxqe'
+    key = getAPIKEY()
     print("Got key: '",key,"'",sep='')
 
     # now we have enough information to make our canvas object
     canvas = getCanvas(url, key)
     print("Got canvas: '",canvas,"'",sep='')
-
-    # OHH OKAY IT LOOKS LIKE THIS ONE MIGHT NOT EVEN BE NEEDED! WHOOPS
-    # get user input for the canvas's user
-    # user = getUser(canvas)
-    # print("Got user: '",user,"'",sep='')
     
     # get user input for the course
     course = getCourse(canvas)
     print("Got course: '",course,"'",sep='')
 
-    # Make a dictionary mapping student IDs (ints) to Student objects
-    student_dict = {}
-    users = course.get_users()
+    # Make a few dictionaries
+    # id_to_student maps student IDs (ints) to Student objects
+    # name_to_student maps student names to Student objects (possibility of repeat)
+    id_to_student = {}
+    name_to_student = {}
+    users = course.get_users(enrollment_type=['student'])
     for user in users:
-        student_dict[user.id] = Student(user)
+        stu = Student(user)
+        id_to_student[user.id] = stu
+        name_to_student[user.sortable_name] = stu
 
     # get the user input for the quiz
     quiz = getQuiz(course)
@@ -82,6 +56,8 @@ if __name__ == "__main__":
         if question['question_type'] == 'multiple_dropdowns_question':
             # Go through the answer sets
             # each dropdown is a sub-question for each question
+            # initialize an empty set of students that have responded to this question here
+            responded = set()
             for dropdown in question['answer_sets']:
                 # the question type -- p1, p2, etc.
                 q_type = dropdown['text']
@@ -93,13 +69,17 @@ if __name__ == "__main__":
                     # for this particular dropdown
                     # for this particular question
                     for user_id in answer['user_ids']:
-                        # if this Interaction does not exist in the Student's interactions, create it
+                        # if the answer has not been left blank, handle it
                         if selection != 'No Answer':
-                            if question_id not in student_dict[user_id].getInteractions():
-                                # in Student.interactions, maps question_id to Interaction
-                                student_dict[user_id].addInteraction(question_id, quiz.id)
-                            # now add data to the appropriate section of that Interaction
-                            student_dict[user_id].updateInteractions(question_id, q_type, selection)
+                            # if student ID is not in that responded set, then this Interaction does not exist yet
+                            # create the interaction and add their ID to the set
+                            if user_id not in responded:
+                                id_to_student[user_id].addInteraction(user_id, id_to_student[user_id])
+                                responded.add(user_id)
+
+                            # update the last interaction in their interactions list                            
+                            # add data to the appropriate section of that Interaction
+                            id_to_student[user_id].updateInteractions(q_type, selection, name_to_student)
 
     # By the end of this for loop, we should have:
     # a dictionary mapping student IDs to Student objects
@@ -109,150 +89,55 @@ if __name__ == "__main__":
 
     # Now let's put those students into their Groups
     
-    exit()
-    # Get the right quiz
-    studentReport = quiz.create_report("student_analysis")
-    reportProgress = None
-
-    # URL of canvas progress object from studentReport
-    reportProgressURL = studentReport.progress_url
-
-    # parse so only the process id remains
-    prefix = 'https://canvas.ucdavis.edu/api/v1/progress/'
-    if reportProgressURL.startswith(prefix):
-        reportProgressID = reportProgressURL[len(prefix):]
-    else: 
-        reportProgressID = reportProgressURL
-
-    # wait for student report to finish generating while the process has not completed or failed 
-    while reportProgress != 'completed' and reportProgress != 'failed':
-        reportProgressObj = canvas.get_progress(reportProgressID)
-        reportProgress = reportProgressObj.workflow_state
-
-    studentReportN = quiz.create_report("student_analysis")
-    url = studentReportN.file["url"]
-    studentData = pd.read_csv(url)
-
-    """ To help get question IDs:
-    for key in studentData.keys():
-        print("-------------------------")
-        print("Key:",key, sep='\n')
-        print("-----------")
-        print("Value:",studentData[key],sep='\n')
-    """
-
-    # have this return a dictionary 
-    # key: userID
-    # value: list of Interactions
-    # then when we build the group we can insert the Interactions for each student
-    sub_dict = parse(studentData, course.id, quiz.id)
-
-    print(sub_dict)
-
     # get the groups of a particular course
     groups = getGroups(course)
-
-    # for group in groups:
-    #     print("\n\nPrinting group '",group.name,"'",sep='')
-    #     print(group.__dict__)
-    #     print("------------------\nMembers:")
-        
-    #     users = group.get_users()
-        
-    #     print("------------------")
-    #     for user in users:
-    #         print("Printing users '",user.name,"'",sep='')
-    #         print(user.__dict__)
-    #         print("------------------")
 
     # convert each group to a Group object
     # then put them into a master group_list
     group_list = []
     for group in groups:
-        # initialize group with group name, group ID, and group Students
+        # initialize group with group name, ID, and participant student IDs
         g = Group(group)
 
-        # for each group, add the Interactions to each Student!
-        g.addInteractions(sub_dict)
-
+        # Add the appropriate Student objects to the group students list
+        for id in g.getParticipantIDs():
+            g.addStudentToGroup(id_to_student[id])
         group_list.append(g)
 
-    # create a dictionary mapping each group_id to their list of Student objects
-    # remember that each student has an attribute identifying their group as well
-    group_dict = {}
-    for g in group_list:
-        group_dict[g.getID()] = g.getStudents()
-        
-        # print(g.getName())
-        # print(g.getID())
-        # print(g.getStudents())
-
-    # print(group_dict)
-    # exit()
+    # DONE: change participants from strings to Student objects
+    # TODO: handle students with identical names
 
     # Now we have:
         # a list of Groups
         # each Group has a list of Students
         # each Student has a list of Interactions
+        # each Interaction is composed of Student participants
 
     # time to grade the Interactions!
     for group in group_list:
-        gradeSubmissions(quiz.id, group)
+        gradeSubmissions(group)
 
-    # get user input for the assignment
-    #assignment = getAssignment(course)
-    #print("Got assignment: '",assignment,"'",sep='')
-
-    #getQuizSubmissions(quiz)
-    #getSubmissions(quiz)
-
+    exit()
 
     # Bonnie interacts with Scott
     # Scott interacts with Bonnie and Matthew
     # Matthew interacts with Bonnie and Scott
 
-
     # Questions:
-    # How to import list of student names into quiz? Automatically generate quiz?
-    # How should we be checking groups?
-        # Right now I'm looking at all submissions. From each submission, I can get the submitting user ID and their answers,
-        # but their answers will be the *names* of their group members -- I can't match them to ID
-        # I also have access to a dictionary mapping each group_id to a list of Student objects
-            # Student objects have name, id, group ID, and a list of Interactions
-        # Compile submissions by Group?
-            # get the user_ids of each Student in each Group
-            # using the user ids, search through the master submission list, since you can check by user_id
-            # get the list of Interactions for each student in the group
-            # check them against each other somehow? this is the part I'm having trouble with
-                # For each participant in each Interaction, check that they have a matching interaction
-                # For each Interaction, add a 'validated' attribute?
-            # tally up valid durations
-            # add a grade attribute to each Student in the Group?
+    # Compile submissions by Group?
+        # get the user_ids of each Student in each Group
+        # using the user ids, search through the master submission list, since you can check by user_id
+        # get the list of Interactions for each student in the group
+        # check them against each other somehow? this is the part I'm having trouble with
+            # For each participant in each Interaction, check that they have a matching interaction
+            # For each Interaction, add a 'validated' attribute?
+        # tally up valid durations
+        # add a grade attribute to each Student in the Group?
     # Separately: should there be Interaction IDs? Composed of user_id + quiz_id + question_id?
         # Used to make sure students don't match their own interactions? Or will that not be a problem?
         # Maybe it's only a problem if I compile a master list of Interactions and check for identical ones?
 
 # General outline to implement:
-    # We have a list of all submissions
-        # From the submission, we can get user ID
-    # We have a dictionary mapping each group_id to their list of Student objects
-        # Each Student object has name and ID
-
-    
-    # Form Groups of Students
-    # Each Student in the Group has a list of Interactions
-    # Each Interaction contains: activity, duration, Students involved
-
-    # Make a master list of Interactions within each group
-    # For each Interaction in the Group, check within that master list for a matching ones, per participant
-
-
-    # Make a dictionary that maps each student in the class to their ID and use that?
-        # Issue with repeat names
-
-    # Autogenerate Canvas quiz question dropdown with student names and IDs?
-        # Did Rebecca do this last quarter? Or you, for the Kudo points?
-
     # Just ask:
         # is the name selected in the group?
         # How would I compare Interactions by hand?
@@ -261,3 +146,63 @@ if __name__ == "__main__":
         # For each member in that group
             # For each interaction that they reported
                 # Verify that interaction against the report of the student's that they said they interacted with
+
+# group all interactions that are similar
+    # place each interaction into its own InteractionGroup
+    # shouldn't have an interaction group that contains multiple interactions reported by the same person
+        # infinite distances between interaction groups with interactions reported by the same person
+    # repeat the following until convergence:
+        # 1. find the pairwise distances from the center of EACH interaction group
+        # to the center of the other interaction groups
+        # 2. if the minimum of all those distances is beneath some cutoff, merge the two groups together
+        # otherwise, stop the algorithm
+        # 3. the center of an interaction group:
+            # participants:
+                # imagine an array of numbers, one for each person in the group
+                # holding the percentage of times each person occured in the "same" interactions
+                # sum up the differences in percentages for each person's appearance between interaction groups
+            # date:
+                # average date via datetime.timestamp()
+            # duration:
+                # average duration reported
+            # activities:
+                # similar to participants
+        # 4. Algorithm to say where "similarity" cuts off 
+            # each difference is an increasing penalty -- exponential growth function
+                # weight * field_base ** diff
+                    # scale * diff * field_base ** diff to make the distance 0 when diff is 0
+                    # or make it a piecewise function -- if diff is 0, it's 0; otherwise...
+                # weight (between 0 and 1) specifies how important this field is in our overall calculation
+                # field_base is a constant for each field
+                # diff must be on the same scale for all fields
+            # scales need to be the same for each field (participants, date, etc.)
+                # for duration, divide by 5 (step size)
+                # for participants and activities, max difference is group size / number of activities
+                # make everything out of 5?
+                # the scale of the difference affects how much each individual discrepency is penalized
+            # sum up the distances for each field to get the total difference between the centers of InteractionGroups
+
+    # Machine learning:
+        # optimize the grouping by optimizing the distance function
+
+# for those interactions, award credit for:
+    # minimum duration
+    # average duration
+    # most common duration
+# who to give the credit to:
+    # percentage of appearance within the interaction
+    # so how many of the similar interactions that they appear in
+    # potential hard limit: you need to appear in x% of the interactions to get full credit
+        # will have to manually ask the students who didn't report the student in the interaction
+        # can maybe automate an email
+    # other possibility: you get awarded the amount of credit (in minutes) multiplied by the percentage of appearance
+
+# For people who don't submit, but are involved in interactions
+    # award full credit to the person who did turn in the assignment
+    # award no credit to the person who didn't turn it in
+
+# When actually scoring assignments, double check that they're still in the class
+    # because people drop
+
+# Other option:
+    # Do you have an interaction with me that took about the same time at around the same time?
