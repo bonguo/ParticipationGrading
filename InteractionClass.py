@@ -1,4 +1,5 @@
 from canvasapi import Canvas
+from datetime import datetime
 import re
 
 groupmates = {'p1', 'p2', 'p3', 'p4'}
@@ -28,6 +29,10 @@ class Interaction:
         duration = int(re.sub('[^0-9]', '', duration))
         self.duration = duration
 
+    def setDate(self, date):
+        dt_obj = datetime.strptime(date, "%m/%d/%Y")
+        self.date = dt_obj
+
     # update the appropriate attributes of the Interaction object
     def updateInteraction(self, q_type, data, name_to_student):
         if q_type in groupmates:
@@ -37,11 +42,13 @@ class Interaction:
             self.addActivity(data)
         elif q_type == 'duration':
             self.setDuration(data)
+        elif q_type == 'date':
+            self.setDate(data)
         else:
             print("Unexpected answer:", data)
     
     # Return the set of activities done by the Student in this Interaction
-    def getActivity(self):
+    def getActivities(self):
         return self.activities
 
     # Return the duration of this Interaction
@@ -55,3 +62,7 @@ class Interaction:
     # Return the ID of the quiz this Interaction belongs to
     def getQuizID(self):
         return self.quiz_id
+
+    # Return the date that this Interaction occured
+    def getDate(self):
+        return self.date

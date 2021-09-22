@@ -21,7 +21,8 @@ if __name__ == "__main__":
     print("Got url: '",url,"'",sep='')
 
     # get user input for the api key
-    key = getAPIKEY()
+    # key = getAPIKEY()
+    key = '3438~S5MKJLaQYYFCVtVHFHQnxmSwi1hhoyMx7LfOl9Ih0ecClOUrQJTun5wZ0dzzFxqe'
     print("Got key: '",key,"'",sep='')
 
     # now we have enough information to make our canvas object
@@ -119,24 +120,6 @@ if __name__ == "__main__":
 
     exit()
 
-    # Bonnie interacts with Scott
-    # Scott interacts with Bonnie and Matthew
-    # Matthew interacts with Bonnie and Scott
-
-    # Questions:
-    # Compile submissions by Group?
-        # get the user_ids of each Student in each Group
-        # using the user ids, search through the master submission list, since you can check by user_id
-        # get the list of Interactions for each student in the group
-        # check them against each other somehow? this is the part I'm having trouble with
-            # For each participant in each Interaction, check that they have a matching interaction
-            # For each Interaction, add a 'validated' attribute?
-        # tally up valid durations
-        # add a grade attribute to each Student in the Group?
-    # Separately: should there be Interaction IDs? Composed of user_id + quiz_id + question_id?
-        # Used to make sure students don't match their own interactions? Or will that not be a problem?
-        # Maybe it's only a problem if I compile a master list of Interactions and check for identical ones?
-
 # General outline to implement:
     # Just ask:
         # is the name selected in the group?
@@ -206,3 +189,5 @@ if __name__ == "__main__":
 
 # Other option:
     # Do you have an interaction with me that took about the same time at around the same time?
+
+    # TODO: how many differences do you want to allow?

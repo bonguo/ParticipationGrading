@@ -10,6 +10,10 @@ class Student:
         self.group_id = None
         self.interactions = []
         self.quiz_grades = {} # maps quiz ID to grade
+
+    # when you print(Student) it'll print the name
+    def __str__(self) -> str:
+        return self.name
     
     # set the group that the student is in
     def setStudentGroup(self, group_id):

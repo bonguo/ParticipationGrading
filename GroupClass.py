@@ -13,13 +13,14 @@ class Group:
         self.name = canvas_group_object.name
         self.group_id = canvas_group_object.id
         
-        self.students = []
+        # set of student objects in this group
+        self.students = set()
         self.interactions = None # for now
         self.participant_ids = self.setParticipantIDs(canvas_group_object)
 
     # get a list of Students in the group and save to self.students
     def addStudentToGroup(self, studentObject):
-        self.students.append(studentObject)
+        self.students.add(studentObject)
 
     def setParticipantIDs(self, canvas_group_object):
         users = canvas_group_object.get_users()

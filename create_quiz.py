@@ -11,8 +11,9 @@ if __name__ == "__main__":
     url = 'https://canvas.ucdavis.edu'
 
     # get user input for the api key
-    key = getAPIKEY()
-    print("Got key: '",key,"'",sep='')
+    # key = getAPIKEY()
+    # print("Got key: '",key,"'",sep='')
+    key = '3438~S5MKJLaQYYFCVtVHFHQnxmSwi1hhoyMx7LfOl9Ih0ecClOUrQJTun5wZ0dzzFxqe'
 
     # now we have enough information to make our canvas object
     canvas = getCanvas(url, key)

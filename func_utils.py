@@ -185,46 +185,6 @@ def getSubmissions(quiz):
     data = pd.read_csv(url)
 
 
-def getQuizSubmissions(quiz):
-    stats = list(quiz.get_statistics())[0]  # there should always be a single element in this list
-    #print("Stats:",stats)
-    #print()
-    #print(stats.__dict__)
-    #print()
-    for question_stats in stats.question_statistics:
-            # last answer means don't give points so don't look at it
-            #for answer in question_stats['answers'][:-1]:
-        print("------------------------------------------")
-        print("Question stats:",question_stats)
-        for answer in question_stats["answers"]:
-            print()
-            print("Answer:",answer)
-    return
-    print("Statistics:")
-    stats = quiz.get_statistics()
-    print(stats[0])
-    print()
-    print(stats[0].__dict__)
-    print()
-
-    reports = quiz.get_all_quiz_reports(report_type="student_analysis")
-    for r in reports:
-        print(r.__dict__)
-        print()
-        
-    print("Submissions:")
-    qs = quiz.get_submissions()
-    print(qs[0])
-    print()
-    print(qs[0].__dict__)
-    print()
-    
-    print("Submission Questions:")
-    sq = qs[0].get_submission_questions()
-    print(sq)
-    print()
-    print(sq.__dict__)
-
 def getGroups(course):
     try:
         groups = course.get_groups()
@@ -255,7 +215,7 @@ def gradeSubmissions(group):
     # for student in group.getStudents():
     #     for interaction in student.getInteractions():
     #         print(student.name)
-    #         print(interaction.getActivity())
+    #         print(interaction.getActivities())
     #         print(interaction.getDuration())
     #         print(interaction.getParticipants())
     #         print(interaction.getQuizID())
