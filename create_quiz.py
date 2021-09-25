@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
     # Set the new assignment name and the number of interaction questions
     # assignment_name = input("Please name the assignment: ")
-    assignment_name = "Test Quiz"
+    assignment_name = "NEW Test Quiz"
 
     # num_activities = int(input("Please choose the number of interaction questions in the quiz: "))
     num_interactions = 4
