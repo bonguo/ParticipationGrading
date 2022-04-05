@@ -92,6 +92,7 @@ class ParticipationQuiz:
         ]
 
         # if they didn't interact, explain here
+        # TODO: move to first question
         questions.append({
             'question_name': "If you couldn't meet with your group",
             'question_text': "If you did not get to interact with anyone in your group this week, please explain what happened here.",

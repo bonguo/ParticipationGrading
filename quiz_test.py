@@ -21,8 +21,7 @@ if __name__ == "__main__":
     print("Got url: '",url,"'",sep='')
 
     # get user input for the api key
-    # key = getAPIKEY()
-    key = '3438~S5MKJLaQYYFCVtVHFHQnxmSwi1hhoyMx7LfOl9Ih0ecClOUrQJTun5wZ0dzzFxqe'
+    key = getAPIKEY()
     print("Got key: '",key,"'",sep='')
 
     # now we have enough information to make our canvas object
