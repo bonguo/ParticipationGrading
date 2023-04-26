@@ -2,10 +2,12 @@ import canvasapi
 import datetime
 from typing import List, Callable, Optional
 
+
 class ParticipationQuiz:
     def __init__(self, course: canvasapi.course.Course,
                  assignment_name: str,
                  # assignment_group: canvasapi.assignment.AssignmentGroup,
+                 number_of_students_per_group: int,
                  num_interactions: int,
                  dates_list,
                  due_date: Optional[datetime.datetime] = None,
@@ -22,7 +24,8 @@ class ParticipationQuiz:
         """
         self.user = course
         self.assignment_name = assignment_name
-        #self.assignment_group = assignment_group
+        self.number_of_students_per_group = number_of_students_per_group
+        # self.assignment_group = assignment_group
         self.dates_list = dates_list
         self.unlock_date = unlock_date
         self.due_date = due_date
@@ -48,7 +51,7 @@ class ParticipationQuiz:
             'title': self.assignment_name,
             'description': prompt,
             'quiz_type': 'assignment',
-            #'assignment_group_id': self.assignment_group.id,
+            # 'assignment_group_id': self.assignment_group.id,
             'allowed_attempts': 10,
             'scoring_policy': 'keep_latest',
             'published': False,
@@ -70,25 +73,26 @@ class ParticipationQuiz:
     # create all the activity questions here
     def _create_quiz_questions(self) -> List[dict]:
         answers = self._create_answers()
+        group_member_questions = ''.join([f'<br>Groupmate {num}: [p{num}]' for num in range(1, self.number_of_students_per_group + 1)])
 
         # four activity questions
         questions = [
             {
-                'question_name': 'Interaction {num}'.format(num = inter_num),
-                'question_text': """<p><strong>Activities.</strong> Which of these activities did you do in your interaction? Please leave everything on [Select] if you did not have this interaction.<br>
+                'question_name': 'Interaction {num}'.format(num=inter_num),
+                'question_text': f"""<p><strong>Activities.</strong> Which of these activities did you do in your interaction? Please leave everything on [Select] if you did not have this interaction.<br>
                                     <p>Do introductions: [Do introductions]<br>
                                         Play a game: [Play a game]<br>
                                         Talk about school-related topics: [School-related topics]<br>
                                         Talk about non-school-related topics: [Non-school-related topics]</p><br>
                                     <p><strong>Duration.</strong> How long did you spend on this interaction? [duration] minutes</p><br>
                                     <p><strong>Participants.</strong> Who did you do this activity with? Leave the remaining groupmates on [Select] if 
-                                        you interacted with less than four people in your group for this activity.<br>
-                                    Groupmate 1: [p1]<br>Groupmate 2: [p2]<br>Groupmate 3: [p3]<br>Groupmate 4: [p4]</p><br>
+                                        you interacted with less than four people in your group for this activity.
+                                        {group_member_questions}</p><br>
                                     <p><strong>Date.</strong> On what date did this interaction begin, in PST? [date]</p><br?""",
                 'question_type': 'multiple_dropdowns_question',
                 'answers': dict(enumerate(answers)),
                 'points_possible': 1
-            } for inter_num in range(1, self.num_interactions+1)
+            } for inter_num in range(1, self.num_interactions + 1)
         ]
 
         # if they didn't interact, explain here
@@ -109,7 +113,7 @@ class ParticipationQuiz:
             'points_possible': 1,
             'answers': [
                 {'answer_text': student_name,
-                'answer_weight': 1} for student_name in self.students
+                 'answer_weight': 1} for student_name in self.students
             ]
         })
 
@@ -119,7 +123,7 @@ class ParticipationQuiz:
     def _create_answers(self) -> List[dict]:
         activities = ['Do introductions', 'Play a game', 'School-related topics', 'Non-school-related topics']
         durations = ['5', '10', '15', '20', '25', '30', '35', '40', '45+']
-        groupmates = ['p1', 'p2', 'p3', 'p4']
+        groupmates = [f'p{i}' for i in range(1, self.number_of_students_per_group + 1)]
 
         answers = []
 

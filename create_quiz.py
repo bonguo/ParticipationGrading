@@ -30,6 +30,7 @@ if __name__ == "__main__":
 
     # num_activities = int(input("Please choose the number of interaction questions in the quiz: "))
     num_interactions = 4
+    number_of_students_per_group = int(input("Please enter the number of students in the study group: "))
 
     # Ask for the time range of the study group
     start = input("Please enter the start date of the study group in MM/DD/YYYY format: ")
@@ -40,7 +41,7 @@ if __name__ == "__main__":
     dates_list = [start + timedelta(days=x) for x in range((end - start).days + 1)]
 
     # Create the quiz
-    quiz = ParticipationQuiz(course, assignment_name, num_interactions, dates_list)
+    quiz = ParticipationQuiz(course, assignment_name, number_of_students_per_group, num_interactions, dates_list)
 
     try:
         quiz.upload_to_canvas(course)
